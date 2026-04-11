@@ -22,7 +22,7 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'super-secret-rental-key-prod-v2'
 # ==========================================
 # On EC2, Boto3 automatically retrieves credentials from the instance's IAM Role.
 AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
-SNS_TOPIC_ARN = os.getenv('SNS_TOPIC_ARN', 'arn:aws:sns:us-east-1:123456789012:BikeRentalNotifications')
+SNS_TOPIC_ARN = os.getenv('SNS_TOPIC_ARN', 'arn:aws:sns:ap-south-1:336449003024:velocity')
 
 # Initialize Boto3 Session (Thread-safe approach for production)
 boto_session = boto3.Session(region_name=AWS_REGION)
