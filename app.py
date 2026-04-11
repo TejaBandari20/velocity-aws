@@ -30,9 +30,9 @@ dynamodb = boto_session.resource('dynamodb')
 sns_client = boto_session.client('sns')
 
 # DynamoDB Table Names
-USERS_TABLE = os.getenv('USERS_TABLE', 'Rental_Users')
-VEHICLES_TABLE = os.getenv('VEHICLES_TABLE', 'Rental_Vehicles')
-BOOKINGS_TABLE = os.getenv('BOOKINGS_TABLE', 'Rental_Bookings')
+USERS_TABLE = os.getenv('USERS_TABLE', 'USERS_TABLE')
+VEHICLES_TABLE = os.getenv('VEHICLES_TABLE', 'VEHICLES_TABLE')
+BOOKINGS_TABLE = os.getenv('BOOKINGS_TABLE', 'BOOKINGS_TABLE')
 
 # ==========================================
 # HELPER: INITIALIZE DYNAMODB TABLES
