@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Interface - Velocity</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
+        .input-dark { background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(71, 85, 105, 0.5); color: white; }
+        .input-dark:focus { border-color: #06b6d4; outline: none; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2); }
+        select option { background-color: #1e293b; color: white; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="glass-card border-b border-slate-800 px-8 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-cyan-500 flex items-center justify-center text-slate-900 font-black">V</div>
+            <div class="text-xl font-bold tracking-tight">System<span class="text-cyan-400">Admin</span></div>
+        </div>
+        <div class="flex items-center space-x-6">
+            <span class="text-slate-400 text-sm font-medium"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block mr-2 animate-pulse"></span>EC2 Connected</span>
+            <a href="/logout" class="bg-slate-800 hover:bg-red-500/20 hover:text-red-400 border border-slate-700 hover:border-red-500/50 px-5 py-2 rounded-lg text-sm font-bold transition-all">Terminate Session</a>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Controls Column -->
+        <div class="lg:col-span-4 space-y-6">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="p-4 rounded-xl text-sm border backdrop-blur-md {% if category == 'success' %}bg-emerald-500/10 border-emerald-500/30 text-emerald-400{% else %}bg-red-500/10 border-red-500/30 text-red-400{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Single Node Insertion -->
+            <div class="glass-card p-6 rounded-2xl shadow-xl">
+                <div class="flex items-center gap-3 mb-6 border-b border-slate-700/50 pb-4">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <h2 class="text-lg font-bold">Deploy Single Asset</h2>
+                </div>
+                <form action="/admin" method="POST" class="space-y-4 text-sm">
+                    <input type="hidden" name="action" value="single">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-slate-400 mb-1 text-xs uppercase tracking-wider">Classification</label>
+                            <select name="v_type" class="w-full input-dark rounded-lg p-2.5">
+                                <option value="2">2-Wheeler</option>
+                                <option value="4">4-Wheeler</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1 text-xs uppercase tracking-wider">Propulsion</label>
+                            <select name="power" class="w-full input-dark rounded-lg p-2.5">
+                                <option value="EV">Electric (EV)</option>
+                                <option value="Motor">Combustion</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1 text-xs uppercase tracking-wider">Transmission</label>
+                            <select name="gear" class="w-full input-dark rounded-lg p-2.5">
+                                <option value="Gear">Manual</option>
+                                <option value="Without Gear">Automatic</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1 text-xs uppercase tracking-wider">Deployment Zone</label>
+                            <input type="text" name="location" required class="w-full input-dark rounded-lg p-2.5 placeholder-slate-600" placeholder="e.g. Seattle">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 text-xs uppercase tracking-wider">Designation / Model</label>
+                        <input type="text" name="model_name" required class="w-full input-dark rounded-lg p-2.5 placeholder-slate-600" placeholder="Cyberquad">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-slate-400 mb-1 text-xs uppercase tracking-wider">Tariff ($/Day)</label>
+                            <input type="number" name="price" required class="w-full input-dark rounded-lg p-2.5 placeholder-slate-600" placeholder="75">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1 text-xs uppercase tracking-wider">Visual Asset URL</label>
+                            <input type="url" name="image_url" class="w-full input-dark rounded-lg p-2.5 placeholder-slate-600" placeholder="https://...">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-cyan-600 text-white font-bold py-3 rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:bg-cyan-500 transition-all mt-2">Initialize Deployment</button>
+                </form>
+            </div>
+
+            <!-- Bulk Pipeline -->
+            <div class="glass-card p-6 rounded-2xl shadow-xl border-t-4 border-t-purple-500">
+                <div class="flex items-center gap-3 mb-4">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                    <h2 class="text-lg font-bold">Batch Processing Pipeline</h2>
+                </div>
+                <form action="/admin" method="POST">
+                    <input type="hidden" name="action" value="bulk">
+                    <p class="text-[10px] text-slate-400 mb-2 font-mono uppercase tracking-widest border-b border-slate-700 pb-2">Schema: Type,Power,Gear,Loc,Model,Price,IMG_URL</p>
+                    <textarea name="bulk_data" rows="4" required class="w-full input-dark rounded-lg p-3 text-sm font-mono focus:ring-2 focus:ring-purple-500 placeholder-slate-700 resize-none mt-2" placeholder="4,EV,Without Gear,Dallas,Lucid Air,150,https://..."></textarea>
+                    <button type="submit" class="w-full bg-slate-700 border border-slate-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-slate-600 hover:border-purple-500 transition-all mt-4">Execute Batch</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Database View -->
+        <div class="lg:col-span-8 glass-card p-1 rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[800px]">
+            <div class="p-5 border-b border-slate-700/50 flex justify-between items-center bg-slate-800/30 rounded-t-xl">
+                <h2 class="text-lg font-bold flex items-center gap-2"><svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Active Fleet Telemetry (DynamoDB)</h2>
+                <div class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full font-mono text-cyan-400">Total Nodes: {{ vehicles|length }}</div>
+            </div>
+            <div class="overflow-y-auto flex-1 p-4 custom-scrollbar">
+                <div class="grid gap-3">
+                    {% for v in vehicles %}
+                    <div class="bg-slate-800/50 border border-slate-700/50 p-4 rounded-xl flex items-center justify-between hover:bg-slate-800 transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-12 rounded-lg bg-slate-900 overflow-hidden relative">
+                                <img src="{{ v.image_url }}" alt="img" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition" loading="lazy">
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white leading-tight">{{ v.model_name }}</h3>
+                                <p class="text-xs text-slate-400 mt-0.5 capitalize">{{ v.location }} • {{ v.v_type }}-W • {{ v.power }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-6 text-right">
+                            <div class="font-mono text-cyan-400 font-bold">${{ v.price }}<span class="text-[10px] text-slate-500">/d</span></div>
+                            <div class="w-24 flex justify-end">
+                                {% if v.status == 'Available' %}
+                                    <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider w-full text-center">{{ v.status }}</span>
+                                {% else %}
+                                    <span class="bg-amber-500/10 border border-amber-500/30 text-amber-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider w-full text-center">{{ v.status }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if not vehicles %}
+                    <div class="py-20 text-center text-slate-500 border-2 border-dashed border-slate-700 rounded-xl">
+                        <svg class="w-12 h-12 mx-auto text-slate-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                        <p class="text-sm font-medium">Database Empty. Awaiting initial deployment.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.8); border-radius: 10px; }
+    </style>
+</body>
+</html>

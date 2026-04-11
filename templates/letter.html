@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velocity Manifest - {{ booking.booking_id }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #e2e8f0; }
+        h1, .brand-font { font-family: 'Space Grotesk', sans-serif; }
+        .print-area { background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        @media print {
+            body { background: white; padding: 0; }
+            .print-area { box-shadow: none; border: none; max-width: 100%; width: 100%; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body class="py-12 px-4 flex justify-center">
+
+    <div class="print-area w-full max-w-3xl rounded-xl relative overflow-hidden border border-slate-200">
+        
+        <!-- Header Strip -->
+        <div class="h-3 w-full bg-slate-900 flex">
+            <div class="h-full w-1/3 bg-cyan-500"></div>
+            <div class="h-full w-1/3 bg-blue-600"></div>
+        </div>
+
+        <div class="p-12">
+            <div class="flex justify-between items-start mb-16">
+                <div>
+                    <h1 class="text-4xl font-bold text-slate-900 tracking-tight">VELOCITY.</h1>
+                    <p class="text-xs text-slate-500 font-bold tracking-widest uppercase mt-2">Deployment Manifest</p>
+                </div>
+                <div class="text-right">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data={{ booking.booking_id }}" alt="QR" class="ml-auto mb-3 rounded shadow-sm border border-slate-100">
+                    <p class="text-xs text-slate-500 font-mono">TS: {{ booking.date }}</p>
+                </div>
+            </div>
+
+            <div class="mb-10 flex gap-4">
+                <div class="w-1.5 bg-cyan-500 rounded-full"></div>
+                <div>
+                    <p class="text-sm text-slate-500 uppercase font-bold tracking-wider mb-1">Authorized Operator</p>
+                    <h2 class="text-2xl font-bold text-slate-900 brand-font">{{ name }}</h2>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-8 mb-12">
+                <div class="grid grid-cols-2 gap-y-8 gap-x-4">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Contract ID</p>
+                        <p class="font-mono font-bold text-slate-900 text-lg">{{ booking.booking_id }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Asset Designation</p>
+                        <p class="font-bold text-slate-900 text-lg">{{ booking.model_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Duration Authorized</p>
+                        <p class="font-bold text-slate-900">{{ booking.days }} Day(s)</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Status</p>
+                        <p class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 uppercase tracking-widest border border-emerald-200">
+                            Cleared & Paid
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-between items-center border-b-2 border-slate-900 pb-4 mb-4">
+                <span class="font-bold text-slate-900 uppercase tracking-wider text-sm">Total Settlement</span>
+                <span class="text-3xl font-black brand-font">${{ booking.total_price }}</span>
+            </div>
+
+            <div class="text-sm text-slate-600 mt-12 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                <p class="font-bold text-slate-900 mb-3 uppercase tracking-wider text-xs">Standard Operating Procedures:</p>
+                <ul class="list-none space-y-2 text-xs">
+                    <li class="flex items-start gap-2"><svg class="w-4 h-4 text-cyan-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Valid operator license required at physical handover.</li>
+                    <li class="flex items-start gap-2"><svg class="w-4 h-4 text-cyan-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Assets must be returned at timeline expiration to prevent automated penalty routing.</li>
+                    <li class="flex items-start gap-2"><svg class="w-4 h-4 text-cyan-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> EV assets require >20% battery capacity upon return docking.</li>
+                </ul>
+            </div>
+            
+            <!-- Controls (Hidden on Print) -->
+            <div class="mt-12 flex justify-between items-center no-print">
+                <a href="/dashboard" class="text-slate-500 hover:text-slate-900 font-bold transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Dashboard Return
+                </a>
+                <button onclick="window.print()" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-cyan-600 transition-colors shadow-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Print Manifest
+                </button>
+            </div>
+        </div>
+        
+    </div>
+
+</body>
+</html>

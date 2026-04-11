@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Velocity</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .hero-bg {
+            background-image: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(15,23,42,0.7)), url('https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover; background-position: center;
+        }
+        .glass-panel { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="hero-bg h-screen flex items-center justify-center p-4">
+
+    <div class="glass-panel p-10 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] w-full max-w-md relative overflow-hidden">
+        <!-- Decoration glow -->
+        <div class="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500 rounded-full mix-blend-screen filter blur-[80px] opacity-50"></div>
+        <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-600 rounded-full mix-blend-screen filter blur-[80px] opacity-50"></div>
+
+        <div class="text-center mb-8 relative z-10">
+            <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 tracking-tighter">VELOCITY.</h1>
+            <p class="text-slate-400 mt-2 font-light">Secure Authentication Gateway</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-6 p-3 rounded-lg text-sm border relative z-10 {% if category == 'error' %}bg-red-500/10 border-red-500/50 text-red-400{% else %}bg-emerald-500/10 border-emerald-500/50 text-emerald-400{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="/login" method="POST" class="space-y-6 relative z-10">
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-2">Email Address</label>
+                <input type="email" name="email" required class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder-slate-500" placeholder="pilot@velocity.com">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-2">Password</label>
+                <input type="password" name="password" required class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder-slate-500" placeholder="••••••••">
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-[0_0_15px_rgba(6,182,212,0.4)]">
+                Initialize Session
+            </button>
+        </form>
+        
+        <p class="mt-8 text-center text-sm text-slate-400 relative z-10">
+            No access protocol? <a href="/register" class="text-cyan-400 font-semibold hover:text-cyan-300 transition">Register Entity</a>
+        </p>
+    </div>
+
+</body>
+</html>
