@@ -14,34 +14,33 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-# Use environment variable for secret key in production
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'super-secret-rental-key-prod-v2')
 
 # ==========================================
-# AWS CONFIGURATION & IAM ROLE READINESS
+# AWS CONFIGURATION (Hardcoded for ap-south-1)
 # ==========================================
-# On EC2, Boto3 automatically retrieves credentials from the instance's IAM Role.
-AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
-SNS_TOPIC_ARN = os.getenv('SNS_TOPIC_ARN', 'arn:aws:sns:ap-south-1:336449003024:velocity')
+AWS_REGION = 'ap-south-1' # Explicitly set to match your SNS topic
+SNS_TOPIC_ARN = 'arn:aws:sns:ap-south-1:336449003024:velocity'
 
-# Initialize Boto3 Session (Thread-safe approach for production)
+# Initialize Boto3 Session
 boto_session = boto3.Session(region_name=AWS_REGION)
 dynamodb = boto_session.resource('dynamodb')
 sns_client = boto_session.client('sns')
 
-# DynamoDB Table Names
-USERS_TABLE = os.getenv('USERS_TABLE', 'USERS_TABLE')
-VEHICLES_TABLE = os.getenv('VEHICLES_TABLE', 'VEHICLES_TABLE')
-BOOKINGS_TABLE = os.getenv('BOOKINGS_TABLE', 'BOOKINGS_TABLE')
+# Explicit DynamoDB Table Names
+USERS_TABLE = 'Velocity_Users'
+VEHICLES_TABLE = 'Velocity_Vehicles'
+BOOKINGS_TABLE = 'Velocity_Bookings'
 
 # ==========================================
-# HELPER: INITIALIZE DYNAMODB TABLES
+# HELPER: INITIALIZE DYNAMODB TABLES & ADMIN
 # ==========================================
-def init_db():
-    """Creates DynamoDB tables if they don't exist. Run once locally."""
+def init_db_and_admin():
+    """Creates tables if they don't exist and seeds the Admin account."""
     try:
         tables = [table.name for table in dynamodb.tables.all()]
         
+        # 1. Create Tables
         if USERS_TABLE not in tables:
             dynamodb.create_table(
                 TableName=USERS_TABLE,
@@ -69,11 +68,30 @@ def init_db():
             )
             logger.info(f"Created table: {BOOKINGS_TABLE}")
             
+        # 2. Create Hardcoded Admin Account
+        # Wait a moment for tables to be active before writing
+        table = dynamodb.Table(USERS_TABLE)
+        
+        # Check if admin already exists by scanning for the email
+        response = table.scan(FilterExpression=boto3.dynamodb.conditions.Attr('email').eq('admin@velocity.com'))
+        if not response.get('Items'):
+            table.put_item(
+                Item={
+                    'user_id': str(uuid.uuid4()),
+                    'name': 'System Administrator',
+                    'email': 'admin@velocity.com',
+                    'password': generate_password_hash('admin123'), # Hardcoded Admin Password
+                    'role': 'admin',
+                    'created_at': datetime.now().isoformat()
+                }
+            )
+            logger.info("✅ Hardcoded Admin created: admin@velocity.com / admin123")
+
     except ClientError as e:
         logger.error(f"Error checking/creating tables: {e}")
 
-# Uncomment below for local setup only. Remove/comment before EC2 deployment.
-# init_db()
+# Run initialization automatically
+init_db_and_admin()
 
 # ==========================================
 # ROUTES
@@ -92,7 +110,6 @@ def register():
         password = request.form['password']
         role = request.form.get('role', 'user')
 
-        # Security Upgrade: Hash the password before saving to DynamoDB
         hashed_password = generate_password_hash(password)
 
         try:
@@ -124,13 +141,11 @@ def login():
 
         try:
             table = dynamodb.Table(USERS_TABLE)
-            # Note for production: Add a Global Secondary Index (GSI) on 'email' to avoid scans
             response = table.scan(
                 FilterExpression=boto3.dynamodb.conditions.Attr('email').eq(email)
             )
             items = response.get('Items', [])
             
-            # Verify the hashed password
             if items and check_password_hash(items[0]['password'], password):
                 user = items[0]
                 session['user_id'] = user['user_id']
@@ -212,7 +227,6 @@ def admin():
             logger.error(f"Admin Action Error: {e}")
             flash('Error processing request.', 'error')
 
-    # Fetch all vehicles for admin view
     response = table.scan()
     vehicles = response.get('Items', [])
     return render_template('admin.html', vehicles=vehicles)
@@ -237,7 +251,6 @@ def dashboard():
             )
         vehicles = response.get('Items', [])
 
-        # Fetch user's bookings
         table_bookings = dynamodb.Table(BOOKINGS_TABLE)
         booking_resp = table_bookings.scan(
             FilterExpression=boto3.dynamodb.conditions.Attr('user_id').eq(session['user_id'])
@@ -277,7 +290,6 @@ def process_payment(vehicle_id):
     days = int(request.form.get('days', 1))
     
     try:
-        # Get Vehicle Info
         v_table = dynamodb.Table(VEHICLES_TABLE)
         v_resp = v_table.get_item(Key={'vehicle_id': vehicle_id})
         vehicle = v_resp.get('Item')
@@ -289,7 +301,6 @@ def process_payment(vehicle_id):
         total_price = vehicle['price'] * days
         booking_id = f"BKG-{str(uuid.uuid4())[:8].upper()}"
         
-        # Save Booking
         b_table = dynamodb.Table(BOOKINGS_TABLE)
         b_table.put_item(
             Item={
@@ -303,7 +314,6 @@ def process_payment(vehicle_id):
             }
         )
         
-        # Update Vehicle Status
         v_table.update_item(
             Key={'vehicle_id': vehicle_id},
             UpdateExpression="SET #s = :val",
@@ -312,7 +322,6 @@ def process_payment(vehicle_id):
         )
         logger.info(f"Booking {booking_id} created for user {session['user_id']}")
         
-        # Send SNS Notification securely via IAM Role
         message = f"Hello {session['name']}, your booking ({booking_id}) for {vehicle['model_name']} is confirmed! Total: ${total_price}."
         try:
             sns_client.publish(
@@ -350,5 +359,4 @@ def letter(booking_id):
     return render_template('letter.html', booking=booking, name=session['name'])
 
 if __name__ == '__main__':
-    # Threaded=True improves performance of local flask dev server
     app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
