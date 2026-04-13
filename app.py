@@ -17,9 +17,9 @@ app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'super-secret-rental-key-prod-v2')
 
 # ==========================================
-# AWS CONFIGURATION (Hardcoded for ap-south-1)
+# AWS CONFIGURATION 
 # ==========================================
-AWS_REGION = 'ap-south-1' # Explicitly set to match your SNS topic
+AWS_REGION = 'ap-south-1' # Mumbai Region
 SNS_TOPIC_ARN = 'arn:aws:sns:ap-south-1:336449003024:velocity'
 
 # Initialize Boto3 Session
@@ -28,64 +28,68 @@ dynamodb = boto_session.resource('dynamodb')
 sns_client = boto_session.client('sns')
 
 # Explicit DynamoDB Table Names
-USERS_TABLE = 'USERS_TABLE'
-VEHICLES_TABLE = 'VEHICLES_TABLE'
-BOOKINGS_TABLE = 'BOOKINGS_TABLE'
+USERS_TABLE = 'Velocity_Users'
+VEHICLES_TABLE = 'Velocity_Vehicles'
+BOOKINGS_TABLE = 'Velocity_Bookings'
 
 # ==========================================
 # HELPER: INITIALIZE DYNAMODB TABLES & ADMIN
 # ==========================================
 def init_db_and_admin():
-    """Creates tables if they don't exist and seeds the Admin account."""
+    """Creates tables, waits for them to be active, and seeds Admin."""
     try:
-        tables = [table.name for table in dynamodb.tables.all()]
+        existing_tables = [table.name for table in dynamodb.tables.all()]
         
-        # 1. Create Tables
-        if USERS_TABLE not in tables:
-            dynamodb.create_table(
+        # 1. Create Tables & WAIT for them
+        if USERS_TABLE not in existing_tables:
+            logger.info(f"Creating table: {USERS_TABLE} (Please wait...)")
+            table = dynamodb.create_table(
                 TableName=USERS_TABLE,
                 KeySchema=[{'AttributeName': 'user_id', 'KeyType': 'HASH'}],
                 AttributeDefinitions=[{'AttributeName': 'user_id', 'AttributeType': 'S'}],
                 ProvisionedThroughput={'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             )
-            logger.info(f"Created table: {USERS_TABLE}")
+            table.wait_until_exists() # CRITICAL FIX: Wait for AWS to finish
+            logger.info(f"✅ {USERS_TABLE} is active.")
             
-        if VEHICLES_TABLE not in tables:
-            dynamodb.create_table(
+        if VEHICLES_TABLE not in existing_tables:
+            logger.info(f"Creating table: {VEHICLES_TABLE} (Please wait...)")
+            table = dynamodb.create_table(
                 TableName=VEHICLES_TABLE,
                 KeySchema=[{'AttributeName': 'vehicle_id', 'KeyType': 'HASH'}],
                 AttributeDefinitions=[{'AttributeName': 'vehicle_id', 'AttributeType': 'S'}],
                 ProvisionedThroughput={'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             )
-            logger.info(f"Created table: {VEHICLES_TABLE}")
+            table.wait_until_exists() # CRITICAL FIX
+            logger.info(f"✅ {VEHICLES_TABLE} is active.")
             
-        if BOOKINGS_TABLE not in tables:
-            dynamodb.create_table(
+        if BOOKINGS_TABLE not in existing_tables:
+            logger.info(f"Creating table: {BOOKINGS_TABLE} (Please wait...)")
+            table = dynamodb.create_table(
                 TableName=BOOKINGS_TABLE,
                 KeySchema=[{'AttributeName': 'booking_id', 'KeyType': 'HASH'}],
                 AttributeDefinitions=[{'AttributeName': 'booking_id', 'AttributeType': 'S'}],
                 ProvisionedThroughput={'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             )
-            logger.info(f"Created table: {BOOKINGS_TABLE}")
+            table.wait_until_exists() # CRITICAL FIX
+            logger.info(f"✅ {BOOKINGS_TABLE} is active.")
             
-        # 2. Create Hardcoded Admin Account
-        # Wait a moment for tables to be active before writing
-        table = dynamodb.Table(USERS_TABLE)
+        # 2. Create Hardcoded Admin Account securely
+        users_table_res = dynamodb.Table(USERS_TABLE)
+        response = users_table_res.scan(FilterExpression=boto3.dynamodb.conditions.Attr('email').eq('admin@velocity.com'))
         
-        # Check if admin already exists by scanning for the email
-        response = table.scan(FilterExpression=boto3.dynamodb.conditions.Attr('email').eq('admin@velocity.com'))
         if not response.get('Items'):
-            table.put_item(
+            users_table_res.put_item(
                 Item={
                     'user_id': str(uuid.uuid4()),
                     'name': 'System Administrator',
                     'email': 'admin@velocity.com',
-                    'password': generate_password_hash('admin123'), # Hardcoded Admin Password
+                    'password': generate_password_hash('admin123'), # Admin Passkey
                     'role': 'admin',
                     'created_at': datetime.now().isoformat()
                 }
             )
-            logger.info("✅ Hardcoded Admin created: admin@velocity.com / admin123")
+            logger.info("✅ Hardcoded Admin account created successfully!")
 
     except ClientError as e:
         logger.error(f"Error checking/creating tables: {e}")
