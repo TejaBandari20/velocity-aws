@@ -28,9 +28,9 @@ dynamodb = boto_session.resource('dynamodb')
 sns_client = boto_session.client('sns')
 
 # Explicit DynamoDB Table Names
-USERS_TABLE = 'Velocity_Users'
-VEHICLES_TABLE = 'Velocity_Vehicles'
-BOOKINGS_TABLE = 'Velocity_Bookings'
+USERS_TABLE = 'USERS_TABLE'
+VEHICLES_TABLE = 'VEHICLES_TABLE'
+BOOKINGS_TABLE = 'BOOKINGS_TABLE'
 
 # ==========================================
 # HELPER: INITIALIZE DYNAMODB TABLES & ADMIN
