@@ -20,7 +20,7 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'super-secret-rental-key-prod-v2'
 # AWS CONFIGURATION 
 # ==========================================
 AWS_REGION = 'ap-south-1' # Mumbai Region
-SNS_TOPIC_ARN = 'arn:aws:sns:ap-south-1:336449003024:velocity'
+SNS_TOPIC_ARN = 'arn:aws:sns:ap-south-1:336449003024:velocitys'
 
 # Initialize Boto3 Session
 boto_session = boto3.Session(region_name=AWS_REGION)
